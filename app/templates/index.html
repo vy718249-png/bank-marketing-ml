@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Customer Prediction</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <h2>Bank Marketing ML</h2>
+
+    <div>
+
+        <a href="{{ url_for('dashboard') }}">
+            Dashboard
+        </a>
+
+        <a href="{{ url_for('logout') }}">
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+    <h1>Customer Subscription Prediction</h1>
+
+    <p>Enter the customer details below.</p>
+
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% for category, message in messages %}
+
+            <div class="alert {{ category }}">
+                {{ message }}
+            </div>
+
+        {% endfor %}
+
+    {% endwith %}
+
+
+    <form method="POST" class="prediction-form">
+
+        <div class="form-grid">
+
+            {% for feature in features %}
+
+            <div class="form-group">
+
+                <label>
+                    {{ feature.name.replace('_', ' ').title() }}
+                </label>
+
+                {% if feature.type == "text" %}
+
+                    <select name="{{ feature.name }}" required>
+
+                        <option value="">
+                            Select {{ feature.name }}
+                        </option>
+
+                        {% for option in feature.options %}
+
+                            <option value="{{ option }}">
+                                {{ option }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                {% else %}
+
+                    <input
+
+                        type="number"
+
+                        step="any"
+
+                        name="{{ feature.name }}"
+
+                        placeholder="Enter {{ feature.name }}"
+
+                        required
+
+                    >
+
+                {% endif %}
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <button type="submit" class="btn">
+
+            Predict Customer
+
+        </button>
+
+    </form>
+
+
+    {% if result %}
+
+    <div class="result-card">
+
+        <h2>Prediction Result</h2>
+
+        <h3>{{ result.status }}</h3>
+
+        <p>
+
+            Subscription Probability:
+
+            <strong>
+                {{ "%.2f"|format(result.probability * 100) }}%
+            </strong>
+
+        </p>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Business Analytics | Admin</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .analytics-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .eyebrow {
+            color: #64748b;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        .filter-card,
+        .analytics-card,
+        .table-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.06);
+        }
+
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-form div {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-form input,
+        .filter-form select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .filter-form button,
+        .export-btn {
+            padding: 11px 18px;
+            border: none;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.06);
+        }
+
+        .kpi-card h3 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .kpi-card h2 {
+            font-size: 28px;
+            margin: 0;
+            color: #1e293b;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .chart-box {
+            position: relative;
+            height: 300px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8fafc;
+        }
+
+        .section-title {
+            margin-bottom: 18px;
+        }
+
+        .demographic-note {
+            padding: 15px;
+            background: #eff6ff;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #1e40af;
+        }
+
+        .action-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        @media(max-width: 600px) {
+            .analytics-container {
+                padding: 12px;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container analytics-container">
+
+    <!-- PAGE HEADER -->
+
+    <div class="analytics-header">
+
+        <div>
+
+            <span class="eyebrow">
+                ADMINISTRATION / ANALYTICS
+            </span>
+
+            <h1>Business Analytics Dashboard</h1>
+
+            <p>
+                Monitor customer subscriptions, user activity
+                and prediction performance.
+            </p>
+
+        </div>
+
+        <div class="action-links">
+
+            <a href="{{ url_for('dashboard') }}" class="export-btn">
+                User Dashboard
+            </a>
+
+            <a href="{{ url_for('logout') }}" class="export-btn">
+                Logout
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- FILTER SECTION -->
+
+    <div class="filter-card">
+
+        <h3 class="section-title">Analytics Filters</h3>
+
+        <form method="GET"
+              action="{{ url_for('admin_analytics') }}"
+              class="filter-form">
+
+            <div>
+                <label>Start Date</label>
+
+                <input type="date"
+                       name="start_date"
+                       value="{{ start_date or '' }}">
+            </div>
+
+            <div>
+                <label>End Date</label>
+
+                <input type="date"
+                       name="end_date"
+                       value="{{ end_date or '' }}">
+            </div>
+
+            <div>
+                <label>Select User</label>
+
+                <select name="user_id">
+
+                    <option value="">All Users</option>
+
+                    {% for user in users %}
+
+                        <option value="{{ user.id }}"
+                            {% if selected_user|string == user.id|string %}
+                                selected
+                            {% endif %}>
+                            {{ user.username }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <button type="submit">
+                Apply Filters
+            </button>
+
+            <a href="{{ url_for('admin_analytics') }}"
+               class="export-btn">
+                Reset
+            </a>
+
+        </form>
+
+    </div>
+
+
+    <!-- KPI CARDS -->
+
+    <div class="kpi-grid">
+
+        <div class="kpi-card">
+            <h3>Total Registered Users</h3>
+            <h2>{{ total_users }}</h2>
+        </div>
+
+        <div class="kpi-card">
+            <h3>Total Predictions</h3>
+            <h2>{{ total }}</h2>
+        </div>
+
+        <div class="kpi-card">
+            <h3>Subscribed Predictions</h3>
+            <h2>{{ subscribed }}</h2>
+        </div>
+
+        <div class="kpi-card">
+            <h3>Not Subscribed</h3>
+            <h2>{{ not_subscribed }}</h2>
+        </div>
+
+        <div class="kpi-card">
+            <h3>Conversion Rate</h3>
+            <h2>{{ "%.2f"|format(conversion_rate) }}%</h2>
+        </div>
+
+        <div class="kpi-card">
+            <h3>Average Probability</h3>
+            <h2>{{ "%.2f"|format(avg_probability) }}%</h2>
+        </div>
+
+    </div>
+
+
+    <!-- PREDICTION ANALYTICS -->
+
+    <h2 class="section-title">
+        Prediction Analytics
+    </h2>
+
+    <div class="charts-grid">
+
+        <div class="analytics-card">
+
+            <h3>Prediction Distribution</h3>
+
+            <div class="chart-box">
+                <canvas id="predictionChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="analytics-card">
+
+            <h3>Daily Prediction Trends</h3>
+
+            <div class="chart-box">
+                <canvas id="dailyChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="analytics-card">
+
+            <h3>Monthly Prediction Trends</h3>
+
+            <div class="chart-box">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- DEMOGRAPHIC ANALYTICS -->
+
+    <h2 class="section-title">
+        Customer Demographics
+    </h2>
+
+    <div class="demographic-note">
+
+        Analyze prediction records according to customer age,
+        job and education.
+
+    </div>
+
+    <div class="charts-grid">
+
+        <div class="analytics-card">
+
+            <h3>Age Group Analysis</h3>
+
+            <div class="chart-box">
+                <canvas id="ageChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="analytics-card">
+
+            <h3>Job Analysis</h3>
+
+            <div class="chart-box">
+                <canvas id="jobChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="analytics-card">
+
+            <h3>Education Analysis</h3>
+
+            <div class="chart-box">
+                <canvas id="educationChart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- TOP 5 ACTIVE USERS -->
+
+    <div class="table-card">
+
+        <h2 class="section-title">
+            Top 5 Active Users
+        </h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Total Predictions</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for user in top_users %}
+
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.total_predictions }}</td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="3">
+                            No user activity found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- RECENT USER ACTIVITY -->
+
+    <div class="table-card">
+
+        <h2 class="section-title">
+            Recent User Prediction Activity
+        </h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Username</th>
+                        <th>Prediction</th>
+                        <th>Probability</th>
+                        <th>Date</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for activity in recent_activity %}
+
+                    <tr>
+
+                        <td>{{ activity.username }}</td>
+
+                        <td>
+                            {% if activity.prediction == 1 %}
+                                Subscribed
+                            {% else %}
+                                Not Subscribed
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ "%.2f"|format(activity.probability * 100) }}%
+                        </td>
+
+                        <td>{{ activity.created_at }}</td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="4">
+                            No recent activity found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- CSV EXPORT -->
+
+    <div class="action-links">
+
+        <a href="{{ url_for(
+            'export_analytics',
+            start_date=start_date,
+            end_date=end_date,
+            user_id=selected_user
+        ) }}" class="export-btn">
+
+            Export Analytics CSV
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- CHART.JS -->
+
+<script>
+
+    // Prediction Data
+
+    const predictionLabels =
+        {{ prediction_labels | tojson }};
+
+    const predictionValues =
+        {{ prediction_values | tojson }};
+
+
+    // Daily Data
+
+    const dailyLabels =
+        {{ daily_labels | tojson }};
+
+    const dailyValues =
+        {{ daily_values | tojson }};
+
+
+    // Monthly Data
+
+    const monthlyLabels =
+        {{ monthly_labels | tojson }};
+
+    const monthlyValues =
+        {{ monthly_values | tojson }};
+
+
+    // Demographic Data
+
+    const ageLabels =
+        {{ demographics.age_labels | tojson }};
+
+    const ageValues =
+        {{ demographics.age_values | tojson }};
+
+
+    const jobLabels =
+        {{ demographics.job_labels | tojson }};
+
+    const jobValues =
+        {{ demographics.job_values | tojson }};
+
+
+    const educationLabels =
+        {{ demographics.education_labels | tojson }};
+
+    const educationValues =
+        {{ demographics.education_values | tojson }};
+
+
+    Chart.defaults.font.family = "Arial";
+    Chart.defaults.color = "#64748b";
+
+
+    // 1. PREDICTION DISTRIBUTION
+
+    new Chart(document.getElementById("predictionChart"), {
+
+        type: "doughnut",
+
+        data: {
+
+            labels: predictionLabels,
+
+            datasets: [{
+                data: predictionValues,
+                backgroundColor: ["#16a34a", "#ef4444"],
+                borderWidth: 2
+            }]
+
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+
+    });
+
+
+    // 2. DAILY PREDICTION TRENDS
+
+    new Chart(document.getElementById("dailyChart"), {
+
+        type: "line",
+
+        data: {
+
+            labels: dailyLabels,
+
+            datasets: [{
+
+                label: "Daily Predictions",
+                data: dailyValues,
+                borderColor: "#2563eb",
+                backgroundColor: "rgba(37,99,235,0.15)",
+                fill: true,
+                tension: 0.3
+
+            }]
+
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+
+    });
+
+
+    // 3. MONTHLY PREDICTION TRENDS
+
+    new Chart(document.getElementById("monthlyChart"), {
+
+        type: "bar",
+
+        data: {
+
+            labels: monthlyLabels,
+
+            datasets: [{
+
+                label: "Monthly Predictions",
+                data: monthlyValues,
+                backgroundColor: "#8b5cf6"
+
+            }]
+
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+
+    });
+
+
+    // 4. AGE ANALYSIS
+
+    new Chart(document.getElementById("ageChart"), {
+
+        type: "bar",
+
+        data: {
+
+            labels: ageLabels,
+
+            datasets: [{
+
+                label: "Predictions by Age Group",
+                data: ageValues,
+                backgroundColor: "#0ea5e9"
+
+            }]
+
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+
+    });
+
+
+    // 5. JOB ANALYSIS
+
+    new Chart(document.getElementById("jobChart"), {
+
+        type: "bar",
+
+        data: {
+
+            labels: jobLabels,
+
+            datasets: [{
+
+                label: "Predictions by Job",
+                data: jobValues,
+                backgroundColor: "#f59e0b"
+
+            }]
+
+        },
+
+        options: {
+
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false
+
+        }
+
+    });
+
+
+    // 6. EDUCATION ANALYSIS
+
+    new Chart(document.getElementById("educationChart"), {
+
+        type: "pie",
+
+        data: {
+
+            labels: educationLabels,
+
+            datasets: [{
+
+                data: educationValues,
+
+                backgroundColor: [
+                    "#2563eb",
+                    "#16a34a",
+                    "#f59e0b",
+                    "#ef4444",
+                    "#8b5cf6",
+                    "#06b6d4"
+                ]
+
+            }]
+
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

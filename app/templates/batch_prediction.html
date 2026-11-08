@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Batch Prediction | Bank Marketing ML</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+
+<!-- Navbar -->
+
+<nav class="navbar">
+
+    <h2>Bank Marketing ML</h2>
+
+    <div>
+
+        <a href="{{ url_for('dashboard') }}">
+            Dashboard
+        </a>
+
+        <a href="{{ url_for('logout') }}">
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+    <h1>Batch Customer Prediction</h1>
+
+    <p>
+        Upload a CSV file to predict multiple customers at once.
+    </p>
+
+
+    <!-- Flash Messages -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% for category, message in messages %}
+
+            <div class="alert {{ category }}">
+
+                {{ message }}
+
+            </div>
+
+        {% endfor %}
+
+    {% endwith %}
+
+
+    <!-- CSV Upload Section -->
+
+    <div class="prediction-link">
+
+        <h2>Upload Customer CSV File</h2>
+
+        <p>
+
+            Select a CSV file containing customer information.
+            The ML model will automatically predict all records.
+
+        </p>
+
+
+        <form method="POST"
+              enctype="multipart/form-data">
+
+
+            <div class="form-group">
+
+                <label for="file">
+
+                    Select CSV File
+
+                </label>
+
+                <input
+
+                    type="file"
+
+                    id="file"
+
+                    name="file"
+
+                    accept=".csv"
+
+                    required
+
+                >
+
+            </div>
+
+
+            <br>
+
+
+            <button type="submit" class="btn">
+
+                Upload & Predict
+
+            </button>
+
+
+        </form>
+
+    </div>
+
+
+    <!-- Prediction Results -->
+
+    {% if total is defined %}
+
+
+    <h2>Batch Prediction Summary</h2>
+
+
+    <div class="cards">
+
+
+        <div class="card">
+
+            <h3>Total Customers</h3>
+
+            <h1>{{ total }}</h1>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Likely to Subscribe</h3>
+
+            <h1>{{ subscribed }}</h1>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Unlikely to Subscribe</h3>
+
+            <h1>{{ not_subscribed }}</h1>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- Results Table -->
+
+    <h2>Prediction Results</h2>
+
+    <p>
+
+        Showing first 100 records.
+        Download the complete CSV for all customer predictions.
+
+    </p>
+
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Customer</th>
+
+                    <th>Prediction</th>
+
+                    <th>Probability</th>
+
+                    <th>Status</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for row in results %}
+
+                <tr>
+
+                    <td>
+
+                        {{ loop.index }}
+
+                    </td>
+
+
+                    <td>
+
+                        {% if row.prediction == 1 %}
+
+                            Yes
+
+                        {% else %}
+
+                            No
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+
+                        {{ "%.2f"|format(row.probability * 100) }}%
+
+                    </td>
+
+
+                    <td>
+
+                        {{ row.status }}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <br>
+
+
+    <!-- Download Results -->
+
+    <a class="btn"
+
+       href="{{ url_for('download_batch', file_id=file_id) }}">
+
+        Download Complete CSV Results
+
+    </a>
+
+
+    {% endif %}
+
+
+</div>
+
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+
+</body>
+
+</html>

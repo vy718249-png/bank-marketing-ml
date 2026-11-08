@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | Bank Marketing ML</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <h2>Bank Marketing ML</h2>
+
+    <div class="nav-right">
+
+        <span>Welcome, {{ username }}</span>
+
+        {% if is_admin %}
+
+            <a href="{{ url_for('admin_analytics') }}">
+                Admin Analytics
+            </a>
+
+        {% endif %}
+
+        <a href="{{ url_for('logout') }}">
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+    <div class="page-heading">
+
+        <h1>Dashboard</h1>
+
+        <p>Customer Subscription Prediction System</p>
+
+    </div>
+
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% for category, message in messages %}
+
+            <div class="alert {{ category }}">
+                {{ message }}
+            </div>
+
+        {% endfor %}
+
+    {% endwith %}
+
+
+    {% if is_admin %}
+
+        <div class="admin-banner">
+
+            <div>
+
+                <h2>Administrator Access</h2>
+
+                <p>
+                    Manage and analyze customer prediction
+                    activities across all registered users.
+                </p>
+
+            </div>
+
+            <a href="{{ url_for('admin_analytics') }}"
+               class="btn">
+
+                Open Analytics Dashboard
+
+            </a>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- USER STATISTICS -->
+
+    <div class="section-heading">
+
+        <h2>Your Prediction Overview</h2>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-icon blue">
+                P
+            </div>
+
+            <h3>Total Predictions</h3>
+
+            <h1>{{ total }}</h1>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-icon green">
+                Y
+            </div>
+
+            <h3>Likely Subscriptions</h3>
+
+            <h1>{{ subscribed }}</h1>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-icon red">
+                N
+            </div>
+
+            <h3>Unlikely Subscriptions</h3>
+
+            <h1>{{ not_subscribed }}</h1>
+
+        </div>
+
+    </div>
+
+
+    <!-- SINGLE PREDICTION -->
+
+    <div class="prediction-link">
+
+        <h2>Single Customer Prediction</h2>
+
+        <p>
+            Enter customer information manually and predict
+            whether the customer will subscribe to the term deposit.
+        </p>
+
+        <a class="btn"
+           href="{{ url_for('predict') }}">
+
+            Start Single Prediction
+
+        </a>
+
+    </div>
+
+{% if is_admin %}
+
+<div class="prediction-link-card">
+
+    <h2>Admin Analytics Dashboard</h2>
+
+    <p>
+        View all registered users, predictions,
+        subscription trends and business analytics.
+    </p>
+
+    <a href="{{ url_for('admin_analytics') }}" class="btn">
+        Open Admin Analytics
+    </a>
+
+</div>
+
+{% endif %}
+
+    <!-- BATCH PREDICTION -->
+
+    <div class="prediction-link">
+
+        <h2>Batch Customer Prediction</h2>
+
+        <p>
+            Upload a CSV file containing multiple customer records
+            and get predictions for all customers simultaneously.
+        </p>
+
+        <a class="btn"
+           href="{{ url_for('batch_predict_route') }}">
+
+            Upload CSV & Predict
+
+        </a>
+
+    </div>
+
+
+    <!-- PREDICTION HISTORY -->
+
+    <div class="section-heading">
+
+        <h2>Recent Prediction History</h2>
+
+    </div>
+
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Prediction</th>
+
+                    <th>Probability</th>
+
+                    <th>Status</th>
+
+                    <th>Date</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for row in history %}
+
+                <tr>
+
+                    <td>{{ row.id }}</td>
+
+                    <td>
+
+                        {% if row.prediction == 1 %}
+
+                            <span class="badge success-badge">
+                                Yes
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge danger-badge">
+                                No
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        {{ "%.2f"|format(row.probability * 100) }}%
+                    </td>
+
+                    <td>{{ row.status }}</td>
+
+                    <td>{{ row.created_at }}</td>
+
+                </tr>
+
+                {% endfor %}
+
+
+                {% if not history %}
+
+                <tr>
+
+                    <td colspan="5">
+                        No predictions available.
+                    </td>
+
+                </tr>
+
+                {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>
