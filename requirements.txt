@@ -7,3 +7,4 @@ matplotlib
 seaborn
 joblib
 mysql-connector-python
+gunicorn
